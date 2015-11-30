@@ -26,6 +26,7 @@ s = lsScarlet([base 'JPG'], '.JPG');
 % Initialize object for training with ordinary least squares, and set
 % training parameters 
 l3t = l3TrainOLS();
+l3t.l3c = l3ClassifyFast;       % This should become the default classifier
 l3t.l3c.patchSize = patch_sz;
 l3t.l3c.cutPoints = {logspace(-4, -1.2, 60), 1/16};
 
@@ -38,7 +39,7 @@ for jj = 1 : 4 : length(s)
     
     % load raw and jpg image with this name
     img_name = s(jj).name(1:end-4);
-    [I_raw, jpg] = loadScarletNikon(img_name, true, pad_sz);
+    [I_raw, jpg] = loadScarletNikon(img_name, true, pad_sz, offset);
     
     % build l3Data class with these data
     fprintf('Cutting the image and assigning to data structure\n');
@@ -60,7 +61,7 @@ for jj = 1 : 4 : length(s)
         l3r = l3Render();
         l3_RGB = l3r.render(I_raw, cfa, l3t);
         
-        imshow(l3_RGB);
+        imshow(l3_RGB); drawnow;
     end
     
 end
@@ -71,19 +72,22 @@ l3t.train();
 
 % save trained kernels
 fprintf('Saving the trained kernels');
-save([outDir 'l3t.mat'], 'l3t', 'cfa');
+fname = fullfile(outDir,'l3tNikon.mat');
+l3t.save(fname);
 
 %% Show that the first one still renders after the multiple image training
 
 jj = 1;   % jj = 27 is a good one
 img_name = s(jj).name(1:end-4);
-I_raw = loadScarletNikon(img_name, true, pad_sz);
+I_raw = loadScarletNikon(img_name, true, pad_sz, offset);
 
 % Create the render object
 l3r = l3Render();
-l3_RGB = l3r.render(I_raw, cfa, l3t);
+useMex = true;   % Only used for the case of linear kernel regression
+l3_RGB = l3r.render(I_raw, cfa, l3t, useMex);
 vcNewGraphWin; imshow(l3_RGB);
-vcNewGraphWin; imshow((I_raw/max(I_raw(:)))
+vcNewGraphWin; imshow((I_raw/max(I_raw(:))));
+
 imwrite((I_raw/max(I_raw(:))),'raw.jpg','jpg');
 imwrite(l3_RGB,'tmp.jpg','jpg');
 
