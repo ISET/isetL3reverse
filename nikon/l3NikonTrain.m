@@ -75,7 +75,12 @@ save([outDir 'l3t.mat'], 'l3t', 'cfa');
 
 %% Show that the first one still renders after the multiple image training
 
-jj = 1;   % jj = 27 is a good one
+% If you are just loading the TrainOLS structure
+fname = fullfile(l3rRootPath, 'local','trainQuarter','l3t');
+exist(fname,'file')
+load(fname)
+
+jj = 27;   % jj = 27 is a good one
 img_name = s(jj).name(1:end-4);
 I_raw = loadScarletNikon(img_name, true, pad_sz);
 
@@ -83,7 +88,8 @@ I_raw = loadScarletNikon(img_name, true, pad_sz);
 l3r = l3Render();
 l3_RGB = l3r.render(I_raw, cfa, l3t);
 vcNewGraphWin; imshow(l3_RGB);
-vcNewGraphWin; imshow((I_raw/max(I_raw(:)))
+vcNewGraphWin; imshow((I_raw/max(I_raw(:))));
+
 imwrite((I_raw/max(I_raw(:))),'raw.jpg','jpg');
 imwrite(l3_RGB,'tmp.jpg','jpg');
 
