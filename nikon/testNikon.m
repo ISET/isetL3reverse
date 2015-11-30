@@ -49,11 +49,11 @@ space = 8;
 % tImage(1:space:r,2:space:c) = 0.3*mx;  % Red
 % tImage(2:space:r,2:space:c) = 0.8*mx;  % Green
 
-tImage = zeros(64,64);
+tImage = ones(64,64)*0.5*mx;
 tImage(1:space:r,1:space:c) = 0.1*mx;  % Green
 tImage(2:space:r,1:space:c) = 0.1*mx;  % Blue
 tImage(1:space:r,2:space:c) = 0.1*mx;  % Red
-tImage(2:space:r,2:space:c) = 0.0*mx;  % Green
+tImage(2:space:r,2:space:c) = 0.1*mx;  % Green
 
 %%  Here is one observation
 
@@ -65,6 +65,7 @@ l3r = l3Render();
 useMex = true;       % Only used for the case of linear kernel regression
 l3_RGB = l3r.render(tImage, cfa, l3t, useMex);
 
-vcNewGraphWin; imshow(l3_RGB);
+vcNewGraphWin; imagesc(tImage); colormap(gray);
+imtool(l3_RGB);
 
 %%
