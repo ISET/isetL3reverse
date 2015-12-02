@@ -7,9 +7,10 @@ rd.fileGet('DSC_0770.JPG',fullfile(pwd,'DSC_0770.JPG'));
 rd.fileGet('DSC_0802.JPG',fullfile(pwd,'DSC_0802.JPG'));
 rd.fileGet('DSC_0805.JPG',fullfile(pwd,'DSC_0805.JPG'));  % The worst one
 
-%%
+%% For this image, we think the illumination differs from the trained illuminant
+
 rgb1 = imread('original/DSC_0805.JPG');
-rgb2 = imread('rendered/DSC_0805Clip.JPG');
+rgb2 = imread('rendered/DSC_0805.JPG');
 
 vcNewGraphWin; imshow(rgb1)
 vcNewGraphWin; imshow(rgb2)
@@ -38,4 +39,21 @@ plot(X(:),Y(:),'.');
 grid on;
 identityLine;
 
+%% Find the 3x3 that matches the two RGB values best
+[rgb1,r,c] = RGB2XWFormat(rgb1);
+[rgb2] = RGB2XWFormat(rgb2);
 
+% rgb1 = rgb2 * T
+T = double(rgb2) \ double(rgb1);
+
+rgb3 = double(rgb2) * T;
+rgb3 = uint8(ieClip(rgb3,0,255));
+
+rgb3 = XW2RGBFormat(rgb3,r,c);
+rgb2 = XW2RGBFormat(rgb2,r,c);
+rgb1 = XW2RGBFormat(rgb1,r,c);
+
+vcNewGraphWin; imshow(rgb1);  % Original
+vcNewGraphWin; imshow(rgb3)   % Rendered and Corrected by T
+
+imwrite(rgb3,'DSC_0805CC.JPG','jpg');
