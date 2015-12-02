@@ -7,12 +7,13 @@ rd.fileGet('DSC_0770.JPG',fullfile(pwd,'DSC_0770.JPG'));
 rd.fileGet('DSC_0802.JPG',fullfile(pwd,'DSC_0802.JPG'));
 rd.fileGet('DSC_0805.JPG',fullfile(pwd,'DSC_0805.JPG'));  % The worst one
 
+%%
 rgb1 = imread('original/DSC_0805.JPG');
-rgb2 = imread('rendered/DSC_0805.JPG');
+rgb2 = imread('rendered/DSC_0805Clip.JPG');
 
 vcNewGraphWin; imshow(rgb1)
 vcNewGraphWin; imshow(rgb2)
-
+%%
 xyz1 = srgb2xyz(double(rgb1)/255);
 xyz2 = srgb2xyz(double(rgb2)/255);
 

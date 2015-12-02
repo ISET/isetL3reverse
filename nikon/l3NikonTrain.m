@@ -82,7 +82,7 @@ fname = fullfile(l3rRootPath, 'local','trainQuarter','l3tNikon.mat');
 exist(fname,'file')
 load(fname)
 
-jj = 27;             % jj = 27 is a good one
+jj = 28;             % jj = 27 is a good one
 img_name = s(jj).name(1:end-4);
 I_raw = loadScarletNikon(img_name, true, pad_sz, offset);
 
@@ -95,6 +95,8 @@ vcNewGraphWin; imshow(l3_RGB);
 
 imwrite((I_raw/max(I_raw(:))),'raw.jpg','jpg');
 imwrite(l3_RGB,'tmp.jpg','jpg');
+imwrite(ieClip(l3_RGB,0,1),'tmpClip.jpg','jpg');
+
 
 %% Render images that were not trained
 l3r = l3Render();
