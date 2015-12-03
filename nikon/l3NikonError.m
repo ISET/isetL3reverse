@@ -1,11 +1,14 @@
 %%
 rd = rdata('base','http://scarlet.stanford.edu/validation/SCIEN/L3/nikond200/JPG');
 
-
+% We think that the illuminant for these is pretty similar.  Still, could
+% we make the match a little better by a 3x3?
 rd.fileGet('DSC_0784.JPG',fullfile(pwd,'DSC_0784.JPG'));
 rd.fileGet('DSC_0770.JPG',fullfile(pwd,'DSC_0770.JPG'));
 rd.fileGet('DSC_0802.JPG',fullfile(pwd,'DSC_0802.JPG'));
-rd.fileGet('DSC_0805.JPG',fullfile(pwd,'DSC_0805.JPG'));  % The worst one
+
+% The worst one because the illuminant is far off
+rd.fileGet('DSC_0805.JPG',fullfile(pwd,'DSC_0805.JPG'));  
 
 %% For this image, we think the illumination differs from the trained illuminant
 
@@ -57,3 +60,5 @@ vcNewGraphWin; imshow(rgb1);  % Original
 vcNewGraphWin; imshow(rgb3)   % Rendered and Corrected by T
 
 imwrite(rgb3,'DSC_0805CC.JPG','jpg');
+
+%% Now check a pretty good one, say one with a red flower
