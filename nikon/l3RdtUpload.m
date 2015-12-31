@@ -3,6 +3,13 @@
 % The script for converting the NEF files to PGM files is
 %    NAME GOES HERE   
 
+% On black, I made some extra directories and forced everyting to lower
+% case
+% f = dir('*.pgm');
+% for ii=1:length(f)
+%     movefile(f(ii).name,lower(f(ii).name));
+% end
+
 % This is how we open to the SCIEN repository
 rd = RdtClient('scien');
 rd.credentialsDialog;
