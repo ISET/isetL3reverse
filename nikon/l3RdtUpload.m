@@ -15,6 +15,11 @@ rd = RdtClient('scien');
 rd.credentialsDialog;
 fileVersion = '1';
 
+%% Change the default remote path to L3
+rd.crp('/L3');
+% Watch the browser open there
+rd.openBrowser;
+
 %% Upload Cardinal images to Archiva scien/L3
 
 % There is only one original D2X file and associated PGM file
