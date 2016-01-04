@@ -45,7 +45,7 @@ sz = 128;
 % 3 is red
 if pType == 1
     cfaImage = cfaImage(1:5,1:5);
-elseif pType ==2
+elseif pType == 2
     cfaImage = cfaImage((1:5) + 1,1:5);
 elseif pType == 3;
     cfaImage = cfaImage(1:5,(1:5) + 1);
@@ -140,16 +140,18 @@ end
     
 % This is how to get labels within parameter range
 labels = l3t.l3c.query('pixel type', 1, 'luminance', [0 0.001], 'contrast', [0 1/32]);
+disp(labels)
 
 % The parameter names should be the same as l3c.statNames field (cases and
 % space ignored). You can also give it a function handle to do some
 % complicated tasks.  
 
 % Another option is to do some selection directly on the output of
-% getLabelRange. For example, to get all labels of pixel type 1, we can do
+% getLabelRange. For example, to get all labels of pixel type 1
 % 
-range = l3c.getLabelRange(1:l3c.nLabels);
+range = l3t.l3c.getLabelRange(1:l3t.l3c.nLabels);
 indx = [range.pixeltype]==1;
-labels = [range.label]; labels = labels(indx);
+labels = [range.label]; size(labels)
+labels = labels(indx);  size(labels)
 
 %%
