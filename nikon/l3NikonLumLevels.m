@@ -31,26 +31,23 @@ offset = [1 2];  % offset between raw and jpg images for Nikon cameras
 
 % This should simplify even more after working with BH
 train = rd.searchArtifacts('dsc_0780');
-[p,n,e] = fileparts(train.url);
+[p, n, ~] = fileparts(train.url);
 % websave('train.pgm',fullfile(p,[n '.pgm']))
 % websave('train.jpg',fullfile(p,[n '.jpg']))
 urlwrite(fullfile(p,[n '.pgm']),'train.pgm');
 urlwrite(fullfile(p,[n '.jpg']),'train.jpg');
-jpg   = imread('train.jpg');
-jpg = im2double(jpg);
+jpg   = im2double(imread('train.jpg'));
+sz = [size(jpg, 1) size(jpg, 2)];
 
 I_raw = im2double(imread('train.pgm'));
-I_raw = rawAdjustSize(I_raw, [size(jpg, 1) size(jpg, 2)], pad_sz, offset);
+I_raw = rawAdjustSize(I_raw, sz, pad_sz, offset);
 % hist(double(I_raw(:)),100)
 
 vcNewGraphWin; imagesc(jpg);
 vcNewGraphWin; imagesc(I_raw .^ 0.3); colormap(gray)
-size(I_raw)
-size(jpg)
+% size(I_raw); size(jpg)
 
 %% Init parameters
-
-   
 % Init training data parameters
 % base = 'http://scarlet.stanford.edu/validation/SCIEN/L3/nikond200/';
 % 
@@ -86,9 +83,10 @@ test = rd.searchArtifacts('dsc_0792');
 urlwrite(fullfile(p,[n '.pgm']),'test.pgm');
 urlwrite(fullfile(p,[n '.jpg']),'test.jpg');
 
-I_rawTest = im2double((imread('test.pgm')));
-jpgTest   = imread('test.jpg');
-jpgTest = im2double(jpgTest);
+I_rawTest = im2double(imread('test.pgm'));
+jpgTest   = im2double(imread('test.jpg'));
+I_rawTest = rawAdjustSize(I_rawTest, sz, pad_sz, offset);
+
 
 vcNewGraphWin; imagesc(jpgTest);
 vcNewGraphWin; imagesc(I_rawTest .^0.3);colormap(gray)
