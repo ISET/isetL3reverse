@@ -15,21 +15,8 @@ rd.crp('/L3/Farrell/D200/garden');
 s = rd.listArtifacts;
 fprintf('Found %d artifacts\n',length(s))
 
-%% Get a corresponding JPG and PGM file
-
-% This should simplify even more after working with BH
-train = rd.searchArtifacts('dsc_0780');
-[p,n,e] = fileparts(train.url);
-websave('train.pgm',fullfile(p,[n '.pgm']))
-websave('train.jpg',fullfile(p,[n '.jpg']))
-
-I_raw = double(imread('train.pgm'));
-jpg   = double(imread('train.jpg'));
-vcNewGraphWin; imagescRGB(jpg);
-vcNewGraphWin; imagesc(I_raw .^ 0.3);
-
-%% Init parameters
-imN = 9;
+%%
+% imN = 9;
 
 % These are the crops for image 9 (flower)
 crop1 = round([2422.5 1717.5 1290 875]);  % Lower right two flowers
@@ -39,6 +26,30 @@ cfa = [2 1; 3 4]; % Bayer pattern, 2 and 4 are both for green
 patch_sz = [5 5];
 pad_sz   = (patch_sz - 1) / 2;
 offset = [1 2];  % offset between raw and jpg images for Nikon cameras
+
+%% Get a corresponding JPG and PGM file
+
+% This should simplify even more after working with BH
+train = rd.searchArtifacts('dsc_0780');
+[p,n,e] = fileparts(train.url);
+% websave('train.pgm',fullfile(p,[n '.pgm']))
+% websave('train.jpg',fullfile(p,[n '.jpg']))
+urlwrite(fullfile(p,[n '.pgm']),'train.pgm');
+urlwrite(fullfile(p,[n '.jpg']),'train.jpg');
+jpg   = imread('train.jpg');
+jpg = im2double(jpg);
+
+I_raw = im2double(imread('train.pgm'));
+I_raw = rawAdjustSize(I_raw, [size(jpg, 1) size(jpg, 2)], pad_sz, offset);
+% hist(double(I_raw(:)),100)
+
+vcNewGraphWin; imagesc(jpg);
+vcNewGraphWin; imagesc(I_raw .^ 0.3); colormap(gray)
+size(I_raw)
+size(jpg)
+
+%% Init parameters
+
    
 % Init training data parameters
 % base = 'http://scarlet.stanford.edu/validation/SCIEN/L3/nikond200/';
@@ -65,40 +76,57 @@ l3d = l3DataCamera(raw(1), jpg(1), cfa);
 % img_name = s(testFile).name(1:end-4);
 % [I_rawTest, jpgTest] = loadScarletNikon(img_name, true, pad_sz, offset);
 
+%% Get the test image
+
 test = rd.searchArtifacts('dsc_0792');
 [p,n,e] = fileparts(test.url);
-websave('test.pgm',fullfile(p,[n '.pgm']))
-websave('test.jpg',fullfile(p,[n '.jpg']))
-I_rawTest = double(imread('train.pgm'));
-jpgTest   = double(imread('train.jpg'));
+% websave('test.pgm',fullfile(p,[n '.pgm']))
+% websave('test.jpg',fullfile(p,[n '.jpg']))
 
-% vcNewGraphWin; imagescRGB(jpgTest);
-% vcNewGraphWin; imagesc(I_rawTest .^0.3);
+urlwrite(fullfile(p,[n '.pgm']),'test.pgm');
+urlwrite(fullfile(p,[n '.jpg']),'test.jpg');
+
+I_rawTest = im2double((imread('test.pgm')));
+jpgTest   = imread('test.jpg');
+jpgTest = im2double(jpgTest);
+
+vcNewGraphWin; imagesc(jpgTest);
+vcNewGraphWin; imagesc(I_rawTest .^0.3);colormap(gray)
 
 l3r = l3Render();
 
 
 %% Choose crop region
-vcNewGraphWin;
-imshow(imrotate(uint8(jpgTest),90));
-[d, crop1] = imcrop;
-crop1 = round(crop1);
-[d, crop2] = imcrop;
-crop2 = round(crop2);
+% vcNewGraphWin;
+% imshow(imrotate(uint8(jpgTest),90));
+% [d, crop1] = imcrop;
+% crop1 = round(crop1);
+% [d, crop2] = imcrop;
+% crop2 = round(crop2);
 
 %% Init training class
+% Make a video that shows how the filters change with the luminance level.
 
-%  Choose one
+%  Choose one crop region
 crop = crop1;
+
+% Set up the movie to write
 v = VideoWriter('l3LumLevelsC1.avi');
+
+% For another version
 %v = VideoWriter('l3LumLevelsC2.avi');
 
+% Movie parameters
 v.FrameRate = 2;
 open(v);
+
+% Open the window
 vcNewGraphWin;
 
-% Set different luminance levels
+% Set the number of luminance levels
 nLevels = 10;
+
+% These are the levels, in this case nLevels spaced logarithmically
 levels = round(logspace(log10(4),log10(40),nLevels));
 for ii=1:nLevels
     l3t = l3TrainOLS();
@@ -110,9 +138,12 @@ for ii=1:nLevels
 
     % Render the image, crop a region
     l3_RGB = l3r.render(I_rawTest, cfa, l3t);
-    l3_RGB = imrotate(l3_RGB,90);
-    im = imcrop(l3_RGB,crop);
-    imshow(im); drawnow;
+    imshow(l3_RGB); drawnow;
+
+    %     l3_RGB = imrotate(l3_RGB,90);
+    %     im = imcrop(l3_RGB,crop);
+    %     imshow(im); drawnow;
+    
     str = sprintf('N Levels %d',levels(ii));
     t = text(30,30,str,'Color',[1 1 1],'FontSize',28);
     writeVideo(v,getframe);
