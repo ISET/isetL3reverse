@@ -1,64 +1,32 @@
 %% Video of number of luminance level classes
+%
+% 
 
-% Init ISET SESSION
+%% Init ISET SESSION
 ieInit;
 
-%%
+%%  Point to a data set on the archiva server
 rd = RdtClient('scien');
-% rd.credentialsDialog;
 rd.crp('/L3/Farrell/D200/garden');
 
-%% This is not working well.  
-
-% There are artifacts in garden that are not returned.  BH is going to help
-% figure this out for us, I hope.
-% Consider dsc_0767, dsc_0768, dsc_0769
-% 
-% Also, of the ones that are returned a number fail to return jpg files
-badJPGList = [ 6    11    19    23    25    29];
-
 %% Test repeatability of artifact listing
+
+% There are 39 files up there
 s = rd.listArtifacts;
 fprintf('Found %d artifacts\n',length(s))
 
-%%
-% In the mean time, here is a way to find some of the artifacts.  Look at
-% the list (s) and choose some that are in there.
-s(29).artifactId
-imgTrainId = 'dsc_0781';
-imgTestId  = 'dsc_0802';
+%% Get a corresponding JPG and PGM file
 
-% idxTrain = [];
-% for ii=1:length(s)
-%     if ~isempty(strfind(imgTrainId,s(ii).artifactId))
-%         idxTrain = ii;
-%         break;
-%     end
-% end
-% idxTrain
-% 
-% idxTest = [];
-% for ii=1:length(s)
-%     if ~isempty(strfind(imgTestId,s(ii).artifactId))
-%         idxTest = ii;
-%         break;
-%     end
-% end
-% idxTest
+% This should simplify even more after working with BH
+train = rd.searchArtifacts('dsc_0780');
+[p,n,e] = fileparts(train.url);
+websave('train.pgm',fullfile(p,[n '.pgm']))
+websave('train.jpg',fullfile(p,[n '.jpg']))
 
-for ii=1:length(s)
-    imgTrain = double(rd.readArtifact(s(ii).artifactId,'type','jpg'));
-    vcNewGraphWin; imagescRGB(imgTrain);
-    title(sprintf('artifact %d',ii));
-end
-
-imgTest = double(rd.readArtifact(imgTestId,'type','jpg'));
-vcNewGraphWin; imagescRGB(imgTest);
-vcNewGraphWin; imagescRGB(imgTrain);
-
-
-
-
+I_raw = double(imread('train.pgm'));
+jpg   = double(imread('train.jpg'));
+vcNewGraphWin; imagescRGB(jpg);
+vcNewGraphWin; imagesc(I_raw .^ 0.3);
 
 %% Init parameters
 imN = 9;
@@ -73,18 +41,18 @@ pad_sz   = (patch_sz - 1) / 2;
 offset = [1 2];  % offset between raw and jpg images for Nikon cameras
    
 % Init training data parameters
-base = 'http://scarlet.stanford.edu/validation/SCIEN/L3/nikond200/';
-
-% Training & Rendering for each class
-s = lsScarlet([base 'JPG'], '.JPG');
-
-%% Train on one file
-trainFile = 3;  % dsc_0769; dsc_0783
-
-% load raw and jpg image
-img_name = s(trainFile).name(1:end-4);
-[I_raw, jpg] = loadScarletNikon(img_name, true, pad_sz, offset);
-% vcNewGraphWin; imshow(jpg)
+% base = 'http://scarlet.stanford.edu/validation/SCIEN/L3/nikond200/';
+% 
+% % Training & Rendering for each class
+% s = lsScarlet([base 'JPG'], '.JPG');
+% 
+% %% Train on one file
+% trainFile = 3;  % dsc_0769; dsc_0783
+% 
+% % load raw and jpg image
+% img_name = s(trainFile).name(1:end-4);
+% [I_raw, jpg] = loadScarletNikon(img_name, true, pad_sz, offset);
+% % vcNewGraphWin; imshow(jpg)
 
 % build l3Data class
 % raw and jpg are cell arrays of 4 images by default
@@ -93,14 +61,26 @@ img_name = s(trainFile).name(1:end-4);
 raw = {I_raw}; jpg = {jpg};
 l3d = l3DataCamera(raw(1), jpg(1), cfa);
 
-testFile = 8;   % dsc_0780; % 9 is 0783, the one with flowers
+% testFile = 8;   % dsc_0780; % 9 is 0783, the one with flowers
+% img_name = s(testFile).name(1:end-4);
+% [I_rawTest, jpgTest] = loadScarletNikon(img_name, true, pad_sz, offset);
+
+test = rd.searchArtifacts('dsc_0792');
+[p,n,e] = fileparts(test.url);
+websave('test.pgm',fullfile(p,[n '.pgm']))
+websave('test.jpg',fullfile(p,[n '.jpg']))
+I_rawTest = double(imread('train.pgm'));
+jpgTest   = double(imread('train.jpg'));
+
+% vcNewGraphWin; imagescRGB(jpgTest);
+% vcNewGraphWin; imagesc(I_rawTest .^0.3);
+
 l3r = l3Render();
-img_name = s(testFile).name(1:end-4);
-[I_rawTest, jpgTest] = loadScarletNikon(img_name, true, pad_sz, offset);
+
 
 %% Choose crop region
 vcNewGraphWin;
-imshow(imrotate(jpgTest,90));
+imshow(imrotate(uint8(jpgTest),90));
 [d, crop1] = imcrop;
 crop1 = round(crop1);
 [d, crop2] = imcrop;
