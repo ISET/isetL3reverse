@@ -1,24 +1,16 @@
-%% Upload L3 training data to Archiva site
+%% Upload Cardinal L3 training data to Archiva site
+%
+% The Farrell garden data set has its own script
+% The Farrell people data set has its own script
+%
 
-% The script for converting the NEF files to PGM files is
-%    NAME GOES HERE   
+%% 
+ieInit
 
-% On black, I made some extra directories and forced everyting to lower
-% case
-% f = dir('*.pgm');
-% for ii=1:length(f)
-%     movefile(f(ii).name,lower(f(ii).name));
-% end
-
-% This is how we open to the SCIEN repository
+%% This is how we open to the SCIEN repository
 rd = RdtClient('scien');
 rd.credentialsDialog;
 fileVersion = '1';
-
-%% Change the default remote path to L3
-rd.crp('/L3');
-% Watch the browser open there
-rd.openBrowser;
 
 %% Upload Cardinal images to Archiva scien/L3
 
@@ -39,7 +31,6 @@ rd.publishArtifacts(pwd,'type','pgm');
 cd(baseDir);
 cd('TIFF/D2X')
 rd.publishArtifacts(pwd,'type','tif');
-
 
 %% The D3 files.  In this case, two originals and a few 'tif' versions
 
@@ -120,34 +111,5 @@ tmp = websave(tmp,a(2).url);
 im = imread(tmp);
 toc
 imtool(im);
-
-%% Upload Farrell images to Archiva scien/L3
-baseDir = '/wandellfs/data/validation/SCIEN/L3/nikond200';
-rd.crp('/L3/Farrell/D200/garden');
-
-cd(fullfile(baseDir,'NEF','garden'))
-rd.publishArtifacts(pwd,'type','nef');
-
-cd(fullfile(baseDir,'PGM','garden'))
-rd.publishArtifacts(pwd,'type','pgm');
-
-cd(fullfile(baseDir,'JPG','garden'))
-rd.publishArtifacts(pwd,'type','jpg');
-
-%% Now the people
-rd.crp('/L3/Farrell/D200/people');
-
-cd(fullfile(baseDir,'NEF','people'))
-rd.publishArtifacts(pwd,'type','nef');
-
-% This is missing.  We need to write a script to make these!
-% There is a conversion script somewhere, or at least HJ probably
-% remembers how to do it with all the dcraw flags.
-cd(fullfile(baseDir,'PGM','people'))
-rd.publishArtifacts(pwd,'type','pgm');
-
-cd(fullfile(baseDir,'JPG','people'))
-rd.publishArtifacts(pwd,'type','jpg');
-
-
+%%
  
