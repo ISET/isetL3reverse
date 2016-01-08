@@ -52,13 +52,18 @@ vcNewGraphWin; imagesc(I_raw .^ 0.3); colormap(gray)
 % build l3Data class
 % raw and jpg are cell arrays of 4 images by default
 
-%[I_raw, jpg] = cutImages(I_raw, jpg, [size(jpg, 1) size(jpg, 2)]/2);
+%[I_raw, jpg] = cutImages(I_raw, jpg, sz/2);
 raw = {I_raw}; jpg = {jpg};
 l3d = l3DataCamera(raw(1), jpg(1), cfa);
 
 %% Get the test image
+% testFile = 'dsc_0792';  % Forrest scene with red bush
+% testFile = 'dsc_0784';  % Red flower depth of field, needs a lot
+% testFile = 'dsc_0799';  % Nice red flowers house corner
+testFile = 'dsc_0806';  % Buddha in stone
+% testFile = 'dsc_0813';  % Trisha and Rosemary, need dcraw
 
-test = rd.searchArtifacts('dsc_0792');
+test = rd.searchArtifacts(testFile);
 [p,n,e] = fileparts(test.url);
 rdtSave('test.jpg',fullfile(p,[n '.jpg']));
 rdtSave('test.pgm',fullfile(p,[n '.pgm']));
@@ -67,8 +72,8 @@ I_rawTest = im2double(imread('test.pgm'));
 jpgTest   = im2double(imread('test.jpg'));
 I_rawTest = rawAdjustSize(I_rawTest, sz, pad_sz, offset);
 
-vcNewGraphWin; imagesc(jpgTest);
-vcNewGraphWin; imagesc(I_rawTest .^0.3);colormap(gray)
+% vcNewGraphWin; imagesc(jpgTest);
+% vcNewGraphWin; imagesc(I_rawTest .^0.3);colormap(gray)
 
 %%
 l3r = l3Render();
@@ -89,7 +94,7 @@ l3r = l3Render();
 crop = crop1;
 
 % Set up the movie to write
-v = VideoWriter('l3LumLevelsC1.avi');
+v = VideoWriter(sprintf('l3LumLevels-%s.avi',testFile));
 
 % For another version
 %v = VideoWriter('l3LumLevelsC2.avi');
@@ -102,7 +107,7 @@ open(v);
 vcNewGraphWin;
 
 % Set the number of luminance levels
-nLevels = 10;
+nLevels = 12;
 
 % These are the levels, in this case nLevels spaced logarithmically
 levels = round(logspace(log10(4),log10(40),nLevels));
@@ -133,34 +138,53 @@ close(v)
 
 %% Allow for illuminant correction 3x3 difference
 
-l3_XW = RGB2XWFormat(im);
-jpgTest_XW = RGB2XWFormat(imcrop(jpgTest,crop));
+[l3_XW,r,c] = RGB2XWFormat(l3_RGB);
+jpgTest_XW = RGB2XWFormat(jpgTest);
 
+% Compute the linear transform between the jpg and the l3 rendering
 % jpgTest = l3_XW*T
 % T = pinv(l3_XW)*jpgTest;
 illT = l3_XW\jpgTest_XW;
+imCC = XW2RGBFormat(l3_XW*illT,r,c);
+imCC = ieClip(imCC,0,1);
 
-% tmp = l3_XW*illT; tmp = tmp(:); bar = jpgTest_XW(:);
-% vcNewGraphWin; plot(tmp(1:100:end),bar(1:100:end),'o');  grid on; identityLine; 
-% tmp = l3_XW; tmp = tmp(:);
-% plot(tmp(1:100:end),bar(1:100:end),'o');  grid on; identityLine; 
-% axis equal
-% ieHistImage([tmp(1:100:end),bar(1:100:end)]);  % Maybe a bug in this one
+% No illuminant correction
+vcNewGraphWin; 
+plot(l3_RGB(1:100:end),jpgTest(1:100:end),'o');  grid on; identityLine;
+ieHistImage(cat(1,l3_RGB(1:100:end),jpgTest(1:100:end))');   % There is a bug here!
+axis equal; grid on; identityLine; 
+title('No illuminant correction');
+xlabel('L3'); ylabel('jpg');
 
-% imCC = XW2RGBFormat(l3_XW*illT,r,c);
-% vcNewGraphWin; imshow(imCC);
+% Illuminant correction
+vcNewGraphWin; 
+plot(imCC(1:100:end),jpgTest(1:100:end),'o');  grid on; identityLine;
+ieHistImage(cat(1,imCC(1:100:end),jpgTest(1:100:end))'); % Function is broken.
+axis equal; grid on; identityLine; 
+title('Illuminant correction');
+xlabel('imCC'); ylabel('jpgTest')
+
+%%
+vcNewGraphWin; imshow(imCC);
+vcNewGraphWin; imshow(jpgTest);
 
 %% Interpolate empty kernels
 l3t.fillEmptyKernels;
 l3_RGB = l3r.render(I_rawTest, cfa, l3t);
-im = imcrop(l3_RGB,crop);
-imshow(im); title('Interpolated')
+imshow(l3_RGB); title('Interpolated');
 
-%%
+% im = imcrop(l3_RGB,crop);
+% imshow(im); title('Interpolated')
+
+%% For symmetry where possible on the kernels
 l3t.symmetricKernels;
 l3_RGB = l3r.render(I_rawTest, cfa, l3t);
-im = imcrop(l3_RGB,crop);
-imshow(im); title('Symmetric');
+imshow(l3_RGB); title('Interpolated and Symmetric');
+
+% im = imcrop(l3_RGB,crop);
+% imshow(im); title('Symmetric');
+
+%% Analyze kernel dimensionality
 
 %%
 
