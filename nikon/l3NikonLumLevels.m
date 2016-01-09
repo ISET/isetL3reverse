@@ -148,13 +148,13 @@ for ii=1:nLevels
 end
 close(v)
 
-imwrite(imcrop(imrotate(jpgTest,90),crop),'NikonCrop1.jpg');
-vcNewGraphWin; imshow(imcrop(imrotate(jpgTest,90),crop));
+% imwrite(imcrop(imrotate(jpgTest,90),crop),'NikonCrop1.jpg');
+% vcNewGraphWin; imshow(imcrop(imrotate(jpgTest,90),crop));
 
 %% Allow for illuminant correction 3x3 difference
 
-[l3_XW,r,c] = RGB2XWFormat(im);
-[jpgTest_XW,r,c] = RGB2XWFormat(imcrop(jpgTest,crop));
+l3_XW = RGB2XWFormat(im);
+jpgTest_XW = RGB2XWFormat(imcrop(jpgTest,crop));
 
 % jpgTest = l3_XW*T
 % T = pinv(l3_XW)*jpgTest;
@@ -173,14 +173,16 @@ illT = l3_XW\jpgTest_XW;
 %% Interpolate empty kernels
 l3t.fillEmptyKernels;
 l3_RGB = l3r.render(I_rawTest, cfa, l3t);
-im = imcrop(l3_RGB,crop);
-imshow(im); title('Interpolated')
+imshow(l3_RGB); title('Interpolated')
 
-%%
+% im = imcrop(l3_RGB,crop);
+% imshow(im); title('Interpolated')
+
+%%  Bug in flipud test.  Kernel is 5x5x3 but flipud requires matrix
 l3t.symmetricKernels;
 l3_RGB = l3r.render(I_rawTest, cfa, l3t);
-im = imcrop(l3_RGB,crop);
-imshow(im); title('Symmetric');
+% im = imcrop(l3_RGB,crop);
+% imshow(l3_RGB); title('Symmetric');
 
 %%
 
