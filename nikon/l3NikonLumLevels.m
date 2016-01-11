@@ -130,7 +130,7 @@ open(v);
 vcNewGraphWin;
 
 % Set the number of luminance levels
-nLevels = 4;
+nLevels = 12;
 
 % These are the levels, in this case nLevels spaced logarithmically
 % Typically from 4 to 80 levels.  The last several (beyond 20 or so) don't
