@@ -7,7 +7,8 @@ ieInit;
 
 %%  Point to a data set on the archiva server
 rd = RdtClient('scien');
-rd.crp('/L3/Farrell/D200/garden');
+% rd.crp('/L3/Farrell/D200/garden');
+rd.crp('/L3/Cardinal/D600');
 
 %% Test repeatability of artifact listing
 
@@ -25,27 +26,35 @@ crop2 = round([1093.5 676.5 1467 963]);   % Central flower region
 cfa = [2 1; 3 4]; % Bayer pattern, 2 and 4 are both for green
 patch_sz = [5 5];
 pad_sz   = (patch_sz - 1) / 2;
-offset = [1 2];  % offset between raw and jpg images for Nikon cameras
-
+% offset = [1 2];  % offset between raw and jpg images for Nikon cameras, Farrell
+offset = [0 0];     % Offset for Cardinal, D600
 %% Get a corresponding JPG and PGM file
 
 % The files in Archiva should be adjusted so we don't need to run
 % rawAdjustSize
 % This should simplify even more after working with BH.  We will be able to
 % use rd.readData(artifact) instead of the rdtSave and so forth.
-train = rd.searchArtifacts('dsc_0780');
-[p, n, ~] = fileparts(train.url);
-rdtSave('train.jpg',fullfile(p,[n,'.jpg']));
-jpg   = im2double(imread('train.jpg'));
+% trainFile = 'dsc_0784';     % Farrell
+trainFile = 'ma_griz_39558'; % Cardinal
+train = rd.searchArtifacts(trainFile);
+[p, n, ~] = fileparts(train(2).url);
+% rdtSave('train.jpg',fullfile(p,[n,'.jpg']));  % Farrell
+rdtSave('train.tif',fullfile(p,[n,'.tif']));    % Cardinal
+
+jpg   = im2double(imread('train.tif'));
 sz = [size(jpg, 1) size(jpg, 2)];
 
-rdtSave('train.pgm',fullfile(p,[n,'.pgm']));
+[p, n, ~] = fileparts(train(3).url);
+% rdtSave('train.jpg',fullfile(p,[n,'.jpg']));  % Farrell
+rdtSave('train.pgm',fullfile(p,[n,'.pgm']));    % Cardinal
+
+% rdtSave('train.pgm',fullfile(p,[n,'.pgm']));
 I_raw = im2double(imread('train.pgm'));
 I_raw = rawAdjustSize(I_raw, sz, pad_sz, offset);
 % hist(double(I_raw(:)),100)
 
-vcNewGraphWin; imagesc(jpg);
-vcNewGraphWin; imagesc(I_raw .^ 0.3); colormap(gray)
+% vcNewGraphWin; imagesc(jpg);
+% vcNewGraphWin; imagesc(I_raw .^ 0.3); colormap(gray)
 % size(I_raw); size(jpg)
 
 %% Init parameters
@@ -56,11 +65,20 @@ vcNewGraphWin; imagesc(I_raw .^ 0.3); colormap(gray)
 raw = {I_raw}; jpg = {jpg};
 l3d = l3DataCamera(raw(1), jpg(1), cfa);
 
+%%
+l3t = l3TrainOLS();
+l3t.l3c.patchSize = patch_sz;
+l3t.l3c.cutPoints = {logspace(-3.8, -1.5, levels(ii)), []};
+
+% learn linear filters
+l3t.train(l3d);
+l3t.plot('kernel mean',1)
+
 %% Get the test image
-% testFile = 'dsc_0792';  % Forrest scene with red bush
+testFile = 'dsc_0792';  % Forrest scene with red bush
 % testFile = 'dsc_0784';  % Red flower depth of field, needs a lot
 % testFile = 'dsc_0799';  % Nice red flowers house corner
-testFile = 'dsc_0806';  % Buddha in stone
+% testFile = 'dsc_0806';  % Buddha in stone
 % testFile = 'dsc_0813';  % Trisha and Rosemary, need dcraw
 
 test = rd.searchArtifacts(testFile);
@@ -69,10 +87,15 @@ rdtSave('test.jpg',fullfile(p,[n '.jpg']));
 rdtSave('test.pgm',fullfile(p,[n '.pgm']));
 
 I_rawTest = im2double(imread('test.pgm'));
-jpgTest   = im2double(imread('test.jpg'));
-I_rawTest = rawAdjustSize(I_rawTest, sz, pad_sz, offset);
+jpgTest   = im2double(imread('test.jpg'));  % General, Farrell case
+% I_rawTest = rawAdjustSize(I_rawTest, sz, pad_sz, offset); % General
+% Farrell case
 
-% vcNewGraphWin; imagesc(jpgTest);
+testFile = trainFile;
+I_rawTest = I_raw;  % For first Cardinal case
+jpgTest = jpg;
+
+% vcNewGraphWin; image(jpg{1});
 % vcNewGraphWin; imagesc(I_rawTest .^0.3);colormap(gray)
 
 %%
@@ -94,7 +117,7 @@ l3r = l3Render();
 crop = crop1;
 
 % Set up the movie to write
-v = VideoWriter(sprintf('l3LumLevels-%s.avi',testFile));
+v = VideoWriter(sprintf('l3LumLevels-%s-%s.avi',trainFile,testFile));
 
 % For another version
 %v = VideoWriter('l3LumLevelsC2.avi');
@@ -107,10 +130,13 @@ open(v);
 vcNewGraphWin;
 
 % Set the number of luminance levels
-nLevels = 12;
+nLevels = 4;
 
 % These are the levels, in this case nLevels spaced logarithmically
-levels = round(logspace(log10(4),log10(40),nLevels));
+% Typically from 4 to 80 levels.  The last several (beyond 20 or so) don't
+% change the look of the rendering
+levels = round(logspace(log10(4),log10(80),nLevels));
+fprintf('Raw image min = %.2f max = %.2f\n Expected between -3.8 and -1.5\n',min(I_raw(:)),max(I_raw(:))); 
 for ii=1:nLevels
     l3t = l3TrainOLS();
     l3t.l3c.patchSize = patch_sz;
@@ -135,6 +161,20 @@ close(v)
 
 % imwrite(imcrop(imrotate(jpgTest,90),crop),'NikonCrop1.jpg');
 % vcNewGraphWin; imshow(imcrop(imrotate(jpgTest,90),crop));
+
+
+%% Interpolate empty kernels
+l3t.fillEmptyKernels;
+l3_RGB = l3r.render(I_rawTest, cfa, l3t);
+imshow(l3_RGB); title('Interpolated');
+
+% im = imcrop(l3_RGB,crop);
+% imshow(im); title('Interpolated')
+
+%% For symmetry where possible on the kernels
+l3t.symmetricKernels;
+l3_RGB = l3r.render(I_rawTest, cfa, l3t);
+imshow(l3_RGB); title('Interpolated and Symmetric');
 
 %% Allow for illuminant correction 3x3 difference
 
@@ -168,21 +208,30 @@ xlabel('imCC'); ylabel('jpgTest')
 vcNewGraphWin; imshow(imCC);
 vcNewGraphWin; imshow(jpgTest);
 
-%% Interpolate empty kernels
-l3t.fillEmptyKernels;
-l3_RGB = l3r.render(I_rawTest, cfa, l3t);
-imshow(l3_RGB); title('Interpolated');
-
-% im = imcrop(l3_RGB,crop);
-% imshow(im); title('Interpolated')
-
-%% For symmetry where possible on the kernels
-l3t.symmetricKernels;
-l3_RGB = l3r.render(I_rawTest, cfa, l3t);
-imshow(l3_RGB); title('Interpolated and Symmetric');
-
 % im = imcrop(l3_RGB,crop);
 % imshow(im); title('Symmetric');
+
+%% SCIELAB
+test1 = ieClip(imCC,0,1);
+xyz1 = srgb2xyz(test1);
+xyz2 = srgb2xyz(jpgTest);
+d = displayCreate;
+d = displaySet(d,'viewing distance',1);
+p = scParams(displayGet(d,'dpi'),displayGet(d,'viewing distance'));
+wPoint = displayGet(d,'white point');
+wPoint = 2*wPoint/wPoint(2);   % Why the 2?
+dE = scielab(xyz1,xyz2,wPoint,p);
+vcNewGraphWin;
+imagesc(dE); colormap(gray);  axis image; colorbar;
+title('Spatial CIELAB error distribution')
+
+
+%% Show the luminance differences
+vcNewGraphWin;
+imshow(xyz1(:,:,2));
+imshow(xyz2(:,:,2));
+imagesc(abs(xyz1(:,:,2) - xyz2(:,:,2))); colorbar;
+
 
 %% Analyze kernel dimensionality
 
