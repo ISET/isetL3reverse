@@ -1,2 +1,10 @@
 local
 *~
+
+*.png
+
+*.jpg
+
+*.fig
+
+*.mat
