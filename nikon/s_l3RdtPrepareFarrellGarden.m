@@ -1,13 +1,14 @@
 %% s_l3RdtUploadFarrellGarden
 %
-% Convert the PGM and JPG files into standard format.  Upload them to the
-% archiva repository in the L3/Farrell/D200/garden directory.
+% Convert the PGM and JPG files into standard format.  Place them in the
+% 'processed' directory. Then Upload them to the archiva repository in the
+% L3/Farrell/D200/garden directory.
 %
 % This file contains the list of pictures that JEF took with with the
 % camera on rotated by 90 deg. 
 % rFiles = [769, 771, 772, 773, 774, 775, 776, 777, 780, 781, 782, 787, 788, 795, 796, 797, 803]; 
 % We rotated the original pgm files and the jpeg files so they look right
-% on the screen.  But in doing so, when we load the matched pairs we have
+% on the screen.  But when we load the matched pairs we have
 % to rethink the mosaic pattern (because that is fixed on the PGM file, and
 % thus differs).
 %

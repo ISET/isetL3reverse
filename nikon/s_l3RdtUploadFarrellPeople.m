@@ -25,4 +25,24 @@ rd.publishArtifacts(pwd,'type','pgm');
 cd(fullfile(baseDir,'JPG','people'))
 rd.publishArtifacts(pwd,'type','jpg');
 
+%% Testing a delete of the artifacts
+people = rd.listArtifacts;
+for ii = 1:numel(people);
+    fprintf('  %s\n', people(ii).artifactId);
+end
 
+% Now delete
+deleted = rdtDeleteArtifacts(rd.configuration,people);
+
+fprintf('The following artifacts were deleted:\n');
+for ii = 1:numel(deleted);
+    fprintf('  %s\n', deleted(ii).artifactId);
+end
+
+rd.openBrowser;
+%%  Testing a delete of the path name
+remotePath = '/L3/Farrell/D200/people';
+deleted = rdtDeleteRemotePaths(rd.configuration, remotePath);
+rd.openBrowser;
+
+%%

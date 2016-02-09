@@ -1,4 +1,4 @@
-%% Video of number of luminance level classes
+%% Illustrate the effect of the number of luminance level classes
 %
 % 
 
@@ -7,14 +7,21 @@ ieInit;
 
 %%  Point to a data set on the archiva server
 rd = RdtClient('scien');
-% rd.crp('/L3/Farrell/D200/garden');
-rd.crp('/L3/Cardinal/D600');
+rd.crp('/L3/Farrell/D200/garden');
+% rd.crp('/L3/Cardinal/D600');
 
-%% Test repeatability of artifact listing
+%% This is how we get an image
 
-% There are 39 files up there
 s = rd.listArtifacts;
-fprintf('Found %d artifacts\n',length(s))
+fprintf('Found %d artifacts\n',length(s));
+
+% artifactID = 'dsc_0784';   % Flower image
+% artifactID = 
+jpgImage = rd.readArtifact(artifactID,'type','jpg');
+% vcNewGraphWin; imshow(jpgImage);
+
+pgmImage = rd.readArtifact(artifactID,'type','pgm');
+% vcNewGraphWin; imagesc(pgmImage); colormap(gray)
 
 %%
 % imN = 9;
