@@ -37,7 +37,7 @@ train_raw = im2double(rd.readArtifact(trainFile, 'type', 'pgm'));
 % testFile = 'dsc_0799';  % Nice red flowers house corner
 % testFile = 'dsc_0806';  % Buddha in stone
 % testFile = 'dsc_0813';  % Trisha and Rosemary, need dcraw
-testFile = 'dsc_0792';
+testFile = 'dsc_0799';
 test_rgb = im2double(rd.readArtifact(testFile, 'type', 'jpg'));
 test_raw = im2double(rd.readArtifact(testFile, 'type', 'pgm'));
 
@@ -56,9 +56,6 @@ levels = round(logspace(log10(4),log10(80),nLevels));
 l3d = l3DataCamera({train_raw}, {train_rgb}, cfa);
 l3r = l3Render();
 
-% Open the window
-vcNewGraphWin;
-
 % Train using different luminance levels and render the test image
 for ii = 1 : nLevels
     l3t = l3TrainOLS();
@@ -69,11 +66,10 @@ for ii = 1 : nLevels
     l3t.train(l3d);
 
     % Render the image
-    l3_RGB = l3r.render(test_raw, cfa, l3t);
-    imshow(l3_RGB); drawnow;
-    
+    l3_RGB = ieClip(l3r.render(test_raw, cfa, l3t), 0, 1);
     str = sprintf('N Levels %d',levels(ii));
-    t = text(40,40,str,'Color',[1 1 1],'FontSize',28);
-    writeVideo(v,getframe);
+    rgb = insertText(l3_RGB, [100 100], str, ...
+            'TextColor', 'white', 'FontSize', 48);
+    writeVideo(v, rgb);
 end
 close(v)
