@@ -23,16 +23,27 @@ l3t = l3TrainRidge();
 l3t.l3c.patchSize = patch_sz;
 l3t.l3c.cutPoints = {logspace(-2.2, -1.5, 40), []};
 l3t.l3c.p_max = 1000;
+l3t.verbose = false;
+l3t.l3c.verbose = false;
 
 %  classify training samples
-for ii = train_indx
-    raw = im2double(imread([rawDir s(ii).name(1:end-4) '.pgm']));
+fprintf('Training on image: ');
+for ii = 1 : length(nTrain)
+    % print info
+    str = sprintf('%d / %d', ii, nTrain);
+    fprintf(str);
+    
+    img_name = s(train_indx(ii)).name(1:end-4);
+    raw = im2double(imread([rawDir img_name '.pgm']));
     raw = raw(2:end, :); % make sure raw size is a multiple of cfa size
-    rgb = im2double(imread([rgbDir s(ii).name]));
+    rgb = im2double(imread([rgbDir img_name '.tif']));
     rgb = rgb(2:end, :, :);
     
     l3t.l3c.classify(l3DataCamera({raw}, {rgb}, cfa));
+    
+    fprintf(repmat('\b', [1 length(str)]));
 end
+fprintf('\n');
 
 % learn kernels
 l3t.train();
@@ -42,7 +53,12 @@ l3t.train();
 l3r = l3Render();
 de = zeros(length(s), 1);
 
+fprintf('Rendering image: ');
 for ii = 1 : length(s)
+    % print info
+    str = sprintf('%d / %d', ii, length(s));
+    fprintf(str);
+    
     % load data
     raw = im2double(imread([rawDir s(ii).name(1:end-4) '.pgm']));
     raw = raw(2:end, :); % make sure raw size is a multiple of cfa size
@@ -60,4 +76,8 @@ for ii = 1 : length(s)
     xyz2 = RGB2XWFormat(srgb2xyz(rgb));
     
     de(ii) = mean(deltaEab(xyz1, xyz2, max(xyz2)));
+    
+    % print info
+    fprintf(repmat('\b', [1 length(str)]));
 end
+fprintf('\n');
