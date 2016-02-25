@@ -68,8 +68,8 @@ for ii = 1 : nLevels
     % Render the image
     l3_RGB = ieClip(l3r.render(test_raw, cfa, l3t), 0, 1);
     str = sprintf('N Levels %d',levels(ii));
-    rgb = insertText(l3_RGB, [100 100], str, ...
-            'TextColor', 'white', 'FontSize', 48);
+    rgb = insertText(l3_RGB, [150 150], str, ...
+            'TextColor', 'white', 'FontSize', 96);
     writeVideo(v, rgb);
 end
 close(v)

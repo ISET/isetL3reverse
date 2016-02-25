@@ -19,8 +19,8 @@ pad_sz   = (patch_sz - 1) / 2;
 %% Load a pair of raw and rendered file
 % search for remote path of rendered file
 % fileName = 'Pl_KaladanRiver_Rakhine_0818'; vertical image
-% fileName = 'edl_lakeinle_0850';  % training file name
-fileName = 'ma_griz_39558';
+fileName = 'edl_lakeinle_0850';  % training file name
+% fileName = 'ma_griz_39558';
 rdTif = rd.searchArtifacts([fileName '_dxo_nodist'], 'type', 'tif');
 
 % load image
@@ -96,7 +96,8 @@ fprintf('Std of S-CIELab DeltaE is: %.3f\n', std(de(:)));
 
 %% Testing on another image
 %  Load testing file
-fileName = 'ma_mountaingorillas_0510';  % test file name
+% fileName = 'ma_mountaingorillas_0510';  % test file name
+fileName = 'ma_griz_40380';
 rdTif = rd.searchArtifacts([fileName '_dxo_nodist'], 'type', 'tif');
 
 % load image
