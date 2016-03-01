@@ -15,7 +15,8 @@ outDir = '~/SimResults/L3/Underwater/';
 
 s = lsScarlet(rgbDir, '.tif');
 nTrain = 100; % use 100 images in training
-train_indx = randperm(length(s), nTrain);
+% train_indx = randperm(length(s), nTrain);
+train_indx = 1 : nTrain;
 
 %% Training
 %  Initialize training object
@@ -28,7 +29,7 @@ l3t.l3c.verbose = false;
 
 %  classify training samples
 fprintf('Training on image: ');
-for ii = 1 : length(nTrain)
+for ii = 1 : nTrain
     % print info
     str = sprintf('%d / %d', ii, nTrain);
     fprintf(str);
@@ -51,7 +52,7 @@ l3t.train();
 %% Rendering
 %  Init render object
 l3r = l3Render();
-de = zeros(length(s), 1);
+% de = zeros(length(s), 1);
 
 fprintf('Rendering image: ');
 for ii = 1 : length(s)
@@ -72,10 +73,10 @@ for ii = 1 : length(s)
     imwrite(l3_RGB, [outDir s(ii).name(1:end-4) '.jpg']);
     
     % compute deltaE
-    xyz1 = RGB2XWFormat(srgb2xyz(l3_RGB));
-    xyz2 = RGB2XWFormat(srgb2xyz(rgb));
+    % xyz1 = RGB2XWFormat(srgb2xyz(l3_RGB));
+    % xyz2 = RGB2XWFormat(srgb2xyz(rgb));
     
-    de(ii) = mean(deltaEab(xyz1, xyz2, max(xyz2)));
+    % de(ii) = mean(deltaEab(xyz1, xyz2, max(xyz2)));
     
     % print info
     fprintf(repmat('\b', [1 length(str)]));
