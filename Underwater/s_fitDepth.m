@@ -36,7 +36,7 @@ end
 fprintf('Done...\n');
 
 % visualize and save
-vcNewGraphWin; plot(mean_lum, depth);
+vcNewGraphWin; plot(depth, mean_lum);
 save depth.mat depth mean_lum
 
 %% Fit curve
