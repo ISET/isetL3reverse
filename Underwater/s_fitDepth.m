@@ -40,3 +40,7 @@ vcNewGraphWin; plot(depth, mean_lum);
 save depth.mat depth mean_lum
 
 %% Fit curve
+%  fit a smoothing spline here
+f = fit(depth, mean_lum, 'smoothingspline', 'SmoothingParam', 0.6);
+vcNewGraphWin; plot(f, depth, mean_lum);
+
