@@ -18,7 +18,7 @@ infoDir = [base 'Labels/Water/'];
 outDir = '~/SimResults/L3/Underwater/';
 
 s = lsScarlet(rgbDir, '.tif');
-nTrain = 100; % use 100 images in training
+nTrain = 60; % use 60 images in training
 % train_indx = randperm(length(s), nTrain);
 train_indx = 1 : nTrain;
 
@@ -84,11 +84,11 @@ for ii = 1 : length(s)
     % load data
     raw = im2double(imread([rawDir s(ii).name(1:end-4) '.pgm']));
     raw = raw(2:end, :); % make sure raw size is a multiple of cfa size
-    rgb = im2double(imread([rgbDir s(ii).name]));
-    rgb = rgb(2:end, :, :);
+    % rgb = im2double(imread([rgbDir s(ii).name]));
+    % rgb = rgb(2:end, :, :);
     
     % load depth info
-    xml = xml2struct(xmlread([infoDir img_name '.xml']));
+    xml = xml2struct(xmlread([infoDir s(ii).name(1:end-4) '.xml']));
     depth = str2double(xml.parameters.depth.Text);
     
     if ~trainMap.isKey(depth)
