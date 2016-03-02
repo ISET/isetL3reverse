@@ -15,7 +15,7 @@ base = 'http://scarlet.stanford.edu/validation/SCIEN/CARIBBEAN/03/';
 rawDir = [base 'Data/Water/'];
 rgbDir = [base 'Reference/Water/'];
 infoDir = [base 'Labels/Water/'];
-outDir = '~/SimResults/L3/Underwater/';
+outDir = '~/SimResults/L3/Underwater/known_depth/';
 
 s = lsScarlet(rgbDir, '.tif');
 nTrain = 60; % use 60 images in training
