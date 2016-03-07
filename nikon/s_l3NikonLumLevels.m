@@ -15,17 +15,28 @@ ieInit;
 % Init camera and training parameter
 cfa = [2 1; 3 4]; % Bayer pattern, 2 and 4 are both for green
 patch_sz = [5 5];
+pad_sz = (patch_sz-1)/2;
 
 % Init remote data toolbox
 rd = RdtClient('scien');
 rd.crp('/L3/Farrell/D200/garden');
+
+% init parameters for SCIELAB
+d = displayCreate('LCD-Apple');
+d = displaySet(d, 'gamma', 'linear');  % use a linear gamma table
+d = displaySet(d, 'viewing distance', 1);
+
+rgb2xyz = displayGet(d, 'rgb2xyz');
+wp = displayGet(d, 'white xyz'); % white point
+params = scParams;
+params.sampPerDeg = displayGet(d, 'dots per deg');
 
 %% Load training and testing image
 % list all image artifacts
 s = rd.listArtifacts;
 
 % load training image
-trainFile = 'dsc_0784';   % Flower image
+trainFile = 'dsc_0785';   % Flower image
 train_rgb = im2double(rd.readArtifact(trainFile, 'type', 'jpg'));
 train_raw = im2double(rd.readArtifact(trainFile, 'type', 'pgm'));
 % vcNewGraphWin; imshow(jpgImage);
@@ -37,8 +48,9 @@ train_raw = im2double(rd.readArtifact(trainFile, 'type', 'pgm'));
 % testFile = 'dsc_0799';  % Nice red flowers house corner
 % testFile = 'dsc_0806';  % Buddha in stone
 % testFile = 'dsc_0813';  % Trisha and Rosemary, need dcraw
-testFile = 'dsc_0799';
-test_rgb = im2double(rd.readArtifact(testFile, 'type', 'jpg'));
+testFile = 'dsc_0784';
+rgb = im2double(rd.readArtifact(testFile, 'type', 'jpg'));
+rgb = rgb(pad_sz(1)+1:end-pad_sz(1), pad_sz(2)+1:end-pad_sz(2), :);
 test_raw = im2double(rd.readArtifact(testFile, 'type', 'pgm'));
 
 %% Make a video of l3 rendered images with different luminance levels
@@ -57,19 +69,28 @@ l3d = l3DataCamera({train_raw}, {train_rgb}, cfa);
 l3r = l3Render();
 
 % Train using different luminance levels and render the test image
+de = zeros(nLevels, 1);
 for ii = 1 : nLevels
     l3t = l3TrainOLS();
     l3t.l3c.patchSize = patch_sz;
-    l3t.l3c.cutPoints = {logspace(-3.8, -1.5, levels(ii)), []};
+    % l3t.l3c.cutPoints = {logspace(-3.8, -1.5, levels(ii)), []};
+    l3t.l3c.cutPoints = {linspace(10^-3.8, 10^-1.5, levels(ii)), []};
     
     % learn linear filters
     l3t.train(l3d);
-
+    
     % Render the image
     l3_RGB = ieClip(l3r.render(test_raw, cfa, l3t), 0, 1);
     str = sprintf('N Levels %d',levels(ii));
-    rgb = insertText(l3_RGB, [150 150], str, ...
-            'TextColor', 'white', 'FontSize', 96);
-    writeVideo(v, rgb);
+    rgbText = insertText(l3_RGB, [150 150], str, ...
+        'TextColor', 'white', 'FontSize', 96);
+    writeVideo(v, rgbText);
+    
+    % compute SCIELAB
+    xyz1 = imageLinearTransform(l3_RGB, rgb2xyz);
+    xyz_ref = imageLinearTransform(rgb, rgb2xyz);
+    
+    deImg = scielab(xyz1, xyz_ref, wp, params);
+    de(ii) = mean(deImg(:));
 end
 close(v)
